@@ -74,12 +74,57 @@
     
   </tbody>
 </table>
+
+    <nav  aria-label="Page navigation example">
+      <ul class="pagination">
+        <li v-if="pagination.current_page > 1" class="page-item">
+          <a href="#" @click.prevent="changePage(pagination.current_page-1)" class="page-link">
+            <span>
+            Atras
+            </span>
+            </a>
+        </li>
+
+
+
+        <li v-for="page in pagesNumber" v-bind:class="[page==isActived ?'active':'']" :key="page.id"  class="page-item">
+          <a href="#" @click.prevent="changePage(page)" class="page-link">
+           {{page}}
+            </a>
+        </li>
+
+
+
+        <li v-if="pagination.current_page < pagination.last_page"  class="page-item">
+          <a href="#" @click.prevent="changePage(pagination.current_page+1)" class="page-link">
+            <span>
+            Siguiente
+            </span>
+            </a>
+        </li>
+
+
+
+      </ul>
+    </nav>
+  
     </div>
 </template>
 <script>
 export default {
     data(){
+      
         return{
+          
+          pagination:{
+             'total':0,
+              'current_page':0,
+              'per_page':0,
+              'last_page':0,
+              'from':0,
+              'to':0
+          },
+          offset:2,
             articulo:{
             nombre:'yy',
             descripcion:'yyy',
@@ -89,13 +134,45 @@ export default {
             modificar:true,
             modal:0,
             titulo_modal:'',
-           articulos:[], 
+           articulos:[],           
         }
+        
+    },
+    computed:{
+      isActived:function(){
+        return this.pagination.current_page;
+      },
+      pagesNumber:function(){
+        if(!this.pagination.to){
+          return[];
+        }
+        var from = this.pagination.current_page - this.offset;
+        if(from<1){
+          from=1;
+        }
+
+        var to=from+ (this.offset*2);
+
+        if(to>= this.pagination.last_page){
+          to=this.pagination.last_page;
+
+        }
+
+        var pagesArray=[];
+        while(from<=to){
+          pagesArray.push(from);
+          from++;
+        }
+        return pagesArray;
+
+      }
     },
     methods:{
-        async listar(){
-          const res=await axios.get('articulos');
-            this.articulos=res.data;
+        async listar(page){
+          const res=await axios.get('articulos?page='+page);
+            this.articulos=res.data.articulos.data;
+            this.pagination=res.data.pagination;
+            console.log(res.data.pagination);
         },
         async eliminar(id){
           const res=await axios.delete('articulos/'+id);
@@ -135,11 +212,17 @@ export default {
          async cerrarModal(){
           this.modal=0;  
         },
+        changePage:function(page){
+          this.pagination.current_page=page;
+          this.listar(page);
+        },
 
     },
 
     created(){
         this.listar();
+        console.log(this.pagination);
+       
     },
     
 }

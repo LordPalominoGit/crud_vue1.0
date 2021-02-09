@@ -12,9 +12,23 @@ class ArticuloController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        return Articulo::get();
+        $articulos=Articulo::orderBy('id','DESC')->paginate(4);
+        
+        return [
+            'pagination'=>[
+                'total'         =>$articulos->total(),
+                'current_page'  =>$articulos->currentPage(),
+                'per_page'      =>$articulos->perPage(),
+                'last_page'     =>$articulos->lastPage(),
+                'from'          =>$articulos->firstItem(),
+                'to'            =>$articulos->lastPage(),
+
+            ],
+            'articulos'=>$articulos
+        ];
+        
     }
 
     /**
